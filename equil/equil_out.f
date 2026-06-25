@@ -22,7 +22,6 @@ c     declarations.
 c-----------------------------------------------------------------------
       MODULE equil_out_mod
       USE global_mod
-
       IMPLICIT NONE
 
       CONTAINS
@@ -879,6 +878,5 @@ c-----------------------------------------------------------------------
 c     terminate.
 c-----------------------------------------------------------------------
       RETURN
-      END SUBROUTINE equil_out_dump  
-
+      END SUBROUTINE equil_out_dump
       END MODULE equil_out_mod

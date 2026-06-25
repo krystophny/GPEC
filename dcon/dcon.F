@@ -224,7 +224,7 @@ c-----------------------------------------------------------------------
             CALL read_kin(kinetic_file,zi,zimp,mi,mimp,nfac,
      $          tfac,wefac,wpfac,indebug)
             ! manually set the perturbed equilibrium displacements
-            ! use false flat xi and xi for equal weighting
+            ! use false flat xi and xi' for equal weighting
             ALLOCATE(psitmp(sq%mx+1),mtmp(mpert),xtmp(sq%mx+1,mpert))
             psitmp(:) = sq%xs(0:)
             mtmp = (/(m,m=mlow,mhigh)/)
