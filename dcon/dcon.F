@@ -55,7 +55,8 @@ c-----------------------------------------------------------------------
      $     bin_fmat,out_gmat,bin_gmat,out_kmat,bin_kmat,out_sol,
      $     out_sol_min,out_sol_max,bin_sol,bin_sol_min,bin_sol_max,
      $     out_fl,bin_fl,out_evals,bin_evals,bin_euler,euler_stride,
-     $     bin_vac,ahb_flag,mthsurf0,msol_ahb,netcdf_out,out_fund
+     $     bin_vac,ahb_flag,mthsurf0,msol_ahb,netcdf_out,out_fund,
+     $     out_fixed
 c-----------------------------------------------------------------------
 c     format statements.
 c-----------------------------------------------------------------------
@@ -263,6 +264,7 @@ c-----------------------------------------------------------------------
             IF(bin_euler)CALL bin_close(euler_bin_unit)
             CALL ode_run
          ENDIF
+         IF(out_fixed)CALL fixed_run(nzero)
       ENDIF
       DEALLOCATE(ud)
 c-----------------------------------------------------------------------

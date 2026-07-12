@@ -6,7 +6,8 @@ c-----------------------------------------------------------------------
 c     code organization.
 c-----------------------------------------------------------------------
 c     0. free_mod.
-c     1. free_run.
+c     1. fixed_run.
+c     2. free_run.
 c     2. free_write_msc.
 c     3. free_ahb_prep.
 c     4. free_ahb_write.
@@ -25,7 +26,7 @@ c-----------------------------------------------------------------------
       USE sing_mod, ONLY: sing_der, msol
       USE fourfit_mod, ONLY: asmat, bsmat, csmat, jmat, ipiva,
      $                       cspline_type
-      USE ode_output_mod, ONLY: u,du
+      USE ode_output_mod, ONLY: u,du,psifac,ode_output_get_crit
       USE dcon_netcdf_mod
       IMPLICIT NONE
 
@@ -40,7 +41,110 @@ c-----------------------------------------------------------------------
       TYPE(cspline_type) :: wvmats
       CONTAINS
 c-----------------------------------------------------------------------
-c     subprogram 1. free_run.
+c     subprogram 1. fixed_run.
+c     writes the fixed-boundary Newcomb and plasma-response diagnostics.
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE fixed_run(nzero)
+
+      INTEGER, INTENT(IN) :: nzero
+
+      INTEGER :: info,ipert,jpert,isol,lwork
+      INTEGER, DIMENSION(mpert) :: ipiv,eindex
+      REAL(r8) :: crit,hermiticity,logpsi1,logpsi2,norm,
+     $     q_final,residual,scale,singfac
+      REAL(r8), DIMENSION(2*mpert) :: rwork
+      COMPLEX(r8), DIMENSION(mpert) :: et,tt
+      COMPLEX(r8), DIMENSION(2*mpert+1) :: work
+      COMPLEX(r8), DIMENSION(mpert,mpert) :: temp,vl,vr,wp,wp0
+      COMPLEX(r8), DIMENSION(mpert) :: vec
+c-----------------------------------------------------------------------
+c     format statements.
+c-----------------------------------------------------------------------
+ 10   FORMAT(a,",",i0,",",es24.16,",",es24.16)
+c-----------------------------------------------------------------------
+c     compute the edge plasma response matrix.
+c-----------------------------------------------------------------------
+      temp=CONJG(TRANSPOSE(u(:,1:mpert,1)))
+      wp=u(:,1:mpert,2)
+      wp=CONJG(TRANSPOSE(wp))
+      CALL zgetrf(mpert,mpert,temp,mpert,ipiv,info)
+      IF(info /= 0)CALL program_stop("fixed response zgetrf failed")
+      CALL zgetrs('N',mpert,mpert,temp,mpert,ipiv,wp,mpert,info)
+      IF(info /= 0)CALL program_stop("fixed response zgetrs failed")
+      wp=CONJG(TRANSPOSE(wp))/psio**2
+      wp0=wp
+      scale=MAXVAL(ABS(wp0))
+      IF(scale <= TINY(scale))
+     $     CALL program_stop("fixed response matrix is zero")
+      hermiticity=MAXVAL(ABS(wp0-CONJG(TRANSPOSE(wp0))))/scale
+c-----------------------------------------------------------------------
+c     compute the final Newcomb criterion.
+c-----------------------------------------------------------------------
+      CALL ode_output_get_crit(psifac,u,q_final,singfac,
+     $     logpsi1,logpsi2,crit)
+c-----------------------------------------------------------------------
+c     compute and sort response eigenpairs.
+c-----------------------------------------------------------------------
+      lwork=2*mpert+1
+      CALL zgeev('V','V',mpert,wp,mpert,et,vl,mpert,vr,mpert,
+     $     work,lwork,rwork,info)
+      IF(info /= 0)CALL program_stop("fixed response zgeev failed")
+      eindex=(/(ipert,ipert=1,mpert)/)
+      CALL bubble(REAL(et),eindex,1,mpert)
+      tt=et
+      temp=vr
+      DO ipert=1,mpert
+         et(ipert)=tt(eindex(mpert+1-ipert))
+         vr(:,ipert)=temp(:,eindex(mpert+1-ipert))
+      ENDDO
+c-----------------------------------------------------------------------
+c     write machine-readable diagnostics.
+c-----------------------------------------------------------------------
+      CALL ascii_open(fixed_out_unit,"fixed_boundary.csv","UNKNOWN")
+      WRITE(fixed_out_unit,'(a)')"quantity,index,value_real,value_imag"
+      WRITE(fixed_out_unit,10)"newcomb_zero_count",0,
+     $     REAL(nzero,r8),0.0_r8
+      WRITE(fixed_out_unit,10)"edge_psin",0,psifac,0.0_r8
+      WRITE(fixed_out_unit,10)"edge_q",0,q_final,0.0_r8
+      WRITE(fixed_out_unit,10)"critical_inverse_response",0,
+     $     crit,0.0_r8
+      WRITE(fixed_out_unit,10)"response_hermiticity_relative",0,
+     $     hermiticity,0.0_r8
+      DO isol=1,mpert
+         vec=vr(:,isol)
+         residual=SQRT(SUM(ABS(MATMUL(wp0,vec)-et(isol)*vec)**2))
+         residual=residual/(scale*SQRT(SUM(ABS(vec)**2)))
+         norm=0.0_r8
+         DO ipert=1,mpert
+            DO jpert=1,mpert
+               norm=norm+REAL(jmat(jpert-ipert)*vec(ipert)
+     $              *CONJG(vec(jpert)),r8)
+            ENDDO
+         ENDDO
+         CALL spline_eval(sq,psifac,0)
+         norm=norm/sq%f(3)
+         IF(norm <= TINY(norm))
+     $        CALL program_stop("fixed response norm is not positive")
+         WRITE(fixed_out_unit,10)"response_eigenvalue",isol,
+     $        REAL(et(isol)),AIMAG(et(isol))
+         WRITE(fixed_out_unit,10)"response_eigen_residual",isol,
+     $        residual,0.0_r8
+         WRITE(fixed_out_unit,10)"boundary_norm",isol,norm,0.0_r8
+         WRITE(fixed_out_unit,10)"normalized_response_energy",isol,
+     $        REAL(et(isol))/norm,AIMAG(et(isol))/norm
+         WRITE(fixed_out_unit,10)"response_energy_joule",isol,
+     $        REAL(et(isol))/norm*psio**2/(2*mu0),
+     $        AIMAG(et(isol))/norm*psio**2/(2*mu0)
+      ENDDO
+      CALL ascii_close(fixed_out_unit)
+
+      RETURN
+      END SUBROUTINE fixed_run
+c-----------------------------------------------------------------------
+c     subprogram 2. free_run.
 c     computes plasma, vacuum, and total potential energies.
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
