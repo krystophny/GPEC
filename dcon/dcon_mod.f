@@ -35,6 +35,7 @@ c-----------------------------------------------------------------------
       INTEGER :: ca_unit=30
       INTEGER :: err_unit=31
       INTEGER :: fixed_out_unit=32
+      INTEGER :: fkg_out_unit=33
 
       LOGICAL :: out_bal1=.FALSE.
       LOGICAL :: out_bal2=.FALSE.
@@ -59,6 +60,7 @@ c-----------------------------------------------------------------------
       LOGICAL :: bin_sol=.FALSE.
       LOGICAL :: netcdf_out=.TRUE.
       LOGICAL :: out_fixed=.FALSE.
+      LOGICAL :: out_fkg=.FALSE.
 
       LOGICAL :: bal_flag=.FALSE.
       LOGICAL :: mat_flag=.FALSE.

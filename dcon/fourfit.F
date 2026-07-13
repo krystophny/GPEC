@@ -215,6 +215,11 @@ c     set up complex cubic splines for matrices.
 c-----------------------------------------------------------------------
       IF(diagnose)CALL bin_open(unit,"coefs.bin","UNKNOWN","REWIND",
      $     "none")
+      IF(out_fkg)THEN
+         CALL ascii_open(fkg_out_unit,"fkg.csv","UNKNOWN")
+         WRITE(fkg_out_unit,'(a)')
+     $        "psi,matrix,m1,m2,real,imag"
+      ENDIF
       ALLOCATE(asmat(mpert,mpert),bsmat(mpert,mpert),csmat(mpert,mpert),
      $     jmat(-mband:mband),ipiva(mpert))
       CALL cspline_alloc(fmats,mpsi,(mband+1)*(2*mpert-mband)/2)
@@ -353,6 +358,24 @@ c-----------------------------------------------------------------------
          kmat=emat-MATMUL(CONJG(TRANSPOSE(kmat)),temp2)
          gmat=hmat-MATMUL(CONJG(TRANSPOSE(cmat)),temp2)
          amat=temp0
+         IF(out_fkg)THEN
+            DO j=1,mpert
+               DO i=1,mpert
+                  WRITE(fkg_out_unit,
+     $                 '(es25.16e3,a,a,a,i0,a,i0,2(a,es25.16e3))')
+     $                 psifac,",","F",",",mfac(i),",",mfac(j),",",
+     $                 REAL(fmat(i,j)),",",AIMAG(fmat(i,j))
+                  WRITE(fkg_out_unit,
+     $                 '(es25.16e3,a,a,a,i0,a,i0,2(a,es25.16e3))')
+     $                 psifac,",","K",",",mfac(i),",",mfac(j),",",
+     $                 REAL(kmat(i,j)),",",AIMAG(kmat(i,j))
+                  WRITE(fkg_out_unit,
+     $                 '(es25.16e3,a,a,a,i0,a,i0,2(a,es25.16e3))')
+     $                 psifac,",","G",",",mfac(i),",",mfac(j),",",
+     $                 REAL(gmat(i,j)),",",AIMAG(gmat(i,j))
+               ENDDO
+            ENDDO
+         ENDIF
 c-----------------------------------------------------------------------
 c     kinetic matrices.
 c-----------------------------------------------------------------------
@@ -438,6 +461,7 @@ c-----------------------------------------------------------------------
          WRITE(unit)
          CALL bin_close(unit)
       ENDIF
+      IF(out_fkg)CALL ascii_close(fkg_out_unit)
 c-----------------------------------------------------------------------
 c     set powers.
 c-----------------------------------------------------------------------

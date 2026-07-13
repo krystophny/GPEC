@@ -64,5 +64,6 @@
     bin_bal2=f           ! Binary output for bal_flag functions
 
     out_fixed=f         ! Write Newcomb and edge-response diagnostics to fixed_boundary.csv
+    out_fkg=f           ! Write raw ideal-energy F, K, G matrices to fkg.csv
     netcdf_out=t         ! Replicate ascii dcon.out information in a netcdf file
 /
