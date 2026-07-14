@@ -378,9 +378,9 @@ c-----------------------------------------------------------------------
             WRITE(crit_bin_unit)REAL(psi_med,4),REAL(logpsi1_med,4),
      $           REAL(logpsi2_med,4),REAL(q_med,4),REAL(crit_med,4)
             nzero=nzero+1
-         ENDIF
-         IF (termbycross_flag) THEN
-            CALL program_stop("Terminated by zero crossing.")
+            IF (termbycross_flag) THEN
+               CALL program_stop("Terminated by zero crossing.")
+            ENDIF
          ENDIF
       ENDIF
 c-----------------------------------------------------------------------
