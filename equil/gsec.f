@@ -7,9 +7,10 @@ c     code organization.
 c-----------------------------------------------------------------------
 c     0. gsec_mod.
 c     1. gsec_run.
-c     2. gsec_int.
-c     3. gsec_der.
-c     4. gsec_prof.
+c     2. gsec_input_error.
+c     3. gsec_int.
+c     4. gsec_der.
+c     5. gsec_prof.
 c-----------------------------------------------------------------------
 c     subprogram 0. gsec_mod.
 c     profile declarations.
@@ -24,6 +25,7 @@ c-----------------------------------------------------------------------
       LOGICAL, PARAMETER :: diagnose=.TRUE.
       INTEGER :: ma
       REAL(r8), PRIVATE :: chi1,a,r0,b0=1,beta0,p_pres,p_sig,tol=1e-12
+      CHARACTER(20), PRIVATE :: pressure_type="quadratic"
       TYPE(spline_type) :: eq
 
       CONTAINS
@@ -36,18 +38,46 @@ c     declarations.
 c-----------------------------------------------------------------------
       SUBROUTINE gsec_run
 
-      INTEGER :: it,itmax=10,mstep,mtau,ia,itau
+      INTEGER :: it,itmax=10,mstep,mtau,ia,itau,read_status
       REAL(r8) :: psi,rho,drho,u1max,eps=1e-10,theta,r
       REAL(r8) :: a_in,r0_in,b0_in,beta0_in,p_pres_in,p_sig_in,tol_in
+      CHARACTER(256) :: read_message
 
       NAMELIST/gsec_input/a_in,r0_in,b0_in,q0,beta0_in,p_pres_in,
-     $     p_sig_in,tol_in,ma,mtau
+     $     p_sig_in,tol_in,ma,mtau,pressure_type
 c-----------------------------------------------------------------------
 c     read input.
 c-----------------------------------------------------------------------
+      a_in=-1
+      r0_in=-1
+      b0_in=0
+      q0=0
+      beta0_in=-1
+      p_pres_in=-1
+      p_sig_in=-1
+      tol_in=-1
+      ma=0
+      mtau=0
       CALL ascii_open(in_unit,TRIM(eq_filename),"OLD")
-      READ(in_unit,NML=gsec_input)
+      READ(in_unit,NML=gsec_input,IOSTAT=read_status,IOMSG=read_message)
       CALL ascii_close(in_unit)
+      IF(read_status /= 0)CALL gsec_input_error(TRIM(read_message))
+      IF(TRIM(pressure_type) /= "linear" .AND.
+     $     TRIM(pressure_type) /= "quadratic")CALL gsec_input_error
+     $     ("pressure_type must be linear or quadratic")
+      IF(a_in <= 0)CALL gsec_input_error("a_in must be positive")
+      IF(r0_in <= a_in)CALL gsec_input_error("r0_in must exceed a_in")
+      IF(b0_in == 0)CALL gsec_input_error("b0_in must be nonzero")
+      IF(q0 == 0)CALL gsec_input_error("q0 must be nonzero")
+      IF(beta0_in < 0)CALL gsec_input_error
+     $     ("beta0_in must be nonnegative")
+      IF(p_pres_in <= 0)CALL gsec_input_error
+     $     ("p_pres_in must be positive")
+      IF(p_sig_in < 0)CALL gsec_input_error
+     $     ("p_sig_in must be nonnegative")
+      IF(tol_in <= 0)CALL gsec_input_error("tol_in must be positive")
+      IF(ma < 4)CALL gsec_input_error("ma must be at least 4")
+      IF(mtau < 4)CALL gsec_input_error("mtau must be at least 4")
       a=a_in
       r0=r0_in
       b0=b0_in
@@ -129,7 +159,23 @@ c-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE gsec_run
 c-----------------------------------------------------------------------
-c     subprogram 2. gsec_int.
+c     subprogram 2. gsec_input_error.
+c     reports invalid input with a failing process status.
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE gsec_input_error(message)
+
+      CHARACTER(*), INTENT(IN) :: message
+c-----------------------------------------------------------------------
+c     report invalid input.
+c-----------------------------------------------------------------------
+      WRITE(*,'(2a)') "GSEC INPUT ERROR: ",TRIM(message)
+      ERROR STOP 1
+      END SUBROUTINE gsec_input_error
+c-----------------------------------------------------------------------
+c     subprogram 3. gsec_int.
 c     integrates cylindrical Grad-Shafranov equation.
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
@@ -140,7 +186,7 @@ c-----------------------------------------------------------------------
       REAL(r8), INTENT(OUT) :: u1max
       INTEGER :: mstep
       LOGICAL, INTENT(IN) :: final
-      TYPE(spline_type), INTENT(OUT) :: eq
+      TYPE(spline_type), INTENT(INOUT) :: eq
 
       INTEGER :: iopt,istate,itask,itol,jac,mf
       INTEGER :: istep
@@ -205,7 +251,7 @@ c-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE gsec_int
 c-----------------------------------------------------------------------
-c     subprogram 3. gsec_der.
+c     subprogram 4. gsec_der.
 c     contains newcomb's differential equation.
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
@@ -241,7 +287,7 @@ c-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE gsec_der
 c-----------------------------------------------------------------------
-c     subprogram 4. gsec_prof.
+c     subprogram 5. gsec_prof.
 c     profiles for cylindrical Grad-Shafranov equation.
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
@@ -257,16 +303,24 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     internal.
 c-----------------------------------------------------------------------
-      psifac=1-psi*psi
+      SELECT CASE(TRIM(pressure_type))
+      CASE("linear")
+         psifac=1-psi
+         IF(psifac > 0)p1fac=-p_pres*psifac**(p_pres-1)
+      CASE("quadratic")
+         psifac=1-psi*psi
+         IF(psifac > 0)
+     $        p1fac=-2*p_pres*psi*psifac**(p_pres-1)
+      END SELECT
       IF(psifac > 0)THEN
          jfac=(1-psi)**p_sig
          pfac=psifac**p_pres
-         p1fac=-2*p_pres*psi*psifac**(p_pres-1)
 c-----------------------------------------------------------------------
 c     external.
 c-----------------------------------------------------------------------
       ELSE
          jfac=0
+         pfac=0
          p1fac=0
       ENDIF
 c-----------------------------------------------------------------------
