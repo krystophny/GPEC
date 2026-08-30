@@ -2907,7 +2907,8 @@ c-----------------------------------------------------------------------
      $   bml_id,bl_id,xm_id,x_id,km_id,k_id,rzstat
 
       REAL(r8), DIMENSION(0:mthsurf) :: dphi
-      REAL(r8), DIMENSION(:,:), ALLOCATABLE :: rs,zs,equilbfun
+      REAL(r8), DIMENSION(:,:), ALLOCATABLE :: rs,zs,equilbfun,
+     $     pmodbout
       COMPLEX(r8), DIMENSION(mpert) :: eulbpar_mn,lagbpar_mn,
      $     divxprp_mn,curv_mn
       COMPLEX(r8), DIMENSION(0:mthsurf) :: xsp_fun,xms_fun,
@@ -3139,18 +3140,32 @@ c-----------------------------------------------------------------------
      $      -divxprpmout),AIMAG(-divxprpmout)/),(/mstep,lmpert,2/))) )
          CALL check( nf90_put_var(fncid,km_id,RESHAPE((/REAL(
      $      -curvmout),AIMAG(-curvmout)/),(/mstep,lmpert,2/))) )
-         CALL check( nf90_put_var(fncid,be_id,RESHAPE(
-     $      (/REAL(eulbparfout),-helicity*AIMAG(eulbparfout)/),
-     $      (/mstep,mthsurf,2/))) )
-         CALL check( nf90_put_var(fncid,bl_id,RESHAPE(
-     $      (/REAL(lagbparfout),-helicity*AIMAG(lagbparfout)/),
-     $      (/mstep,mthsurf,2/))) )
-         CALL check( nf90_put_var(fncid,x_id,RESHAPE(
-     $      (/REAL(-divxprpfout),-helicity*AIMAG(-divxprpfout)/),
-     $      (/mstep,mthsurf,2/))))
-         CALL check( nf90_put_var(fncid,k_id,RESHAPE(
-     $      (/REAL(-curvfout),-helicity*AIMAG(-curvfout)/),
-     $      (/mstep,mthsurf,2/))) )
+         ALLOCATE(pmodbout(mstep,0:mthsurf))
+         pmodbout=REAL(eulbparfout)
+         CALL check( nf90_put_var(fncid,be_id,pmodbout,
+     $      start=(/1,1,1/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=-helicity*AIMAG(eulbparfout)
+         CALL check( nf90_put_var(fncid,be_id,pmodbout,
+     $      start=(/1,1,2/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=REAL(lagbparfout)
+         CALL check( nf90_put_var(fncid,bl_id,pmodbout,
+     $      start=(/1,1,1/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=-helicity*AIMAG(lagbparfout)
+         CALL check( nf90_put_var(fncid,bl_id,pmodbout,
+     $      start=(/1,1,2/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=REAL(-divxprpfout)
+         CALL check( nf90_put_var(fncid,x_id,pmodbout,
+     $      start=(/1,1,1/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=-helicity*AIMAG(-divxprpfout)
+         CALL check( nf90_put_var(fncid,x_id,pmodbout,
+     $      start=(/1,1,2/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=REAL(-curvfout)
+         CALL check( nf90_put_var(fncid,k_id,pmodbout,
+     $      start=(/1,1,1/),count=(/mstep,mthsurf+1,1/)) )
+         pmodbout=-helicity*AIMAG(-curvfout)
+         CALL check( nf90_put_var(fncid,k_id,pmodbout,
+     $      start=(/1,1,2/),count=(/mstep,mthsurf+1,1/)) )
+         DEALLOCATE(pmodbout)
          CALL check( nf90_put_var(fncid,b_id,equilbfun) )
          CALL check( nf90_close(fncid) )
       ENDIF
