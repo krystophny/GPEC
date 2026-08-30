@@ -563,12 +563,8 @@ function _bounce_integrate(
                 fill!(view(jvtheta, 1:i), ComplexF64(0.0))
                 continue
             else
-                # After midpoint: hold the previous sample to the end of the grid.
-                # The wd slot is deliberately held from the wb integrand (g_wb),
-                # reproducing the Fortran behavior for parity.
-                fill!(view(g_wb, i:ntheta), g_wb[i-1])
-                fill!(view(g_wd, i:ntheta), g_wb[i-1])
-                fill!(view(jvtheta, i:ntheta), jvtheta[i-1])
+                # After midpoint: hold each previous sample to the end of the grid.
+                _hold_bounce_tail!(g_wb, g_wd, jvtheta, i)
                 break
             end
         end
@@ -728,4 +724,11 @@ function _bounce_integrate(
     end
 
     return wbbar, wdbar, dJdJ_val, wmats_lmda
+end
+
+@inline function _hold_bounce_tail!(g_wb, g_wd, jvtheta, i)
+    fill!(view(g_wb, i:lastindex(g_wb)), g_wb[i-1])
+    fill!(view(g_wd, i:lastindex(g_wd)), g_wd[i-1])
+    fill!(view(jvtheta, i:lastindex(jvtheta)), jvtheta[i-1])
+    return nothing
 end

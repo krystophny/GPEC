@@ -54,6 +54,18 @@
         end
     end
 
+    @testset "bounce-tail continuation" begin
+        wb = [1.0, 2.0, 3.0, 0.0, 0.0]
+        wd = [10.0, 20.0, 30.0, 0.0, 0.0]
+        action = ComplexF64[1im, 2im, 3im, 0.0, 0.0]
+
+        KF._hold_bounce_tail!(wb, wd, action, 4)
+
+        @test wb == [1.0, 2.0, 3.0, 3.0, 3.0]
+        @test wd == [10.0, 20.0, 30.0, 30.0, 30.0]
+        @test action == ComplexF64[1im, 2im, 3im, 3im, 3im]
+    end
+
     # =========================================================================
     # _powspace_antideriv
     # =========================================================================
