@@ -21,7 +21,7 @@ class DirectErrorMessage(unittest.TestCase):
         # Compile the actual declaration/FORMAT/WRITE from direct_fl_int. The
         # small driver reaches the error path deterministically with native I/O.
         program='\n'.join(['      PROGRAM diagnostic','      IMPLICIT NONE',declaration,
-            '      INTEGER :: enstep=1000, ipsi=512','      REAL(8) :: eta=1.0D0',
+            '      INTEGER :: enstep=10000, ipsi=512','      REAL(8) :: eta=1.0D0',
             format_line,write,"      WRITE(*,'(a)') TRIM(message)",'      END',''])
         scratch=Path(os.environ.get('TMPDIR',root/'build-test'));scratch.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=scratch) as directory:
@@ -30,7 +30,7 @@ class DirectErrorMessage(unittest.TestCase):
                             '-o',str(path/'diagnostic')],check=True,capture_output=True)
             result=subprocess.run([str(path/'diagnostic')],capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stderr)
-            self.assertIn('direct_int: istep = enstep = 1000',result.stdout)
+            self.assertIn('direct_int: istep = enstep = 10000',result.stdout)
             self.assertIn(' at eta =  1.000E+00, ipsi = 512',result.stdout)
 
 
