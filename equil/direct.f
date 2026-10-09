@@ -437,7 +437,7 @@ c-----------------------------------------------------------------------
       REAL(r8), DIMENSION(0:,0:), INTENT(OUT) :: y_out
       TYPE(direct_bfield_type), INTENT(OUT) :: bf
 
-      CHARACTER(64) :: message
+      CHARACTER(128) :: message
 
       INTEGER, PARAMETER :: neq=4,liw=30,lrw=22+neq*16
       INTEGER :: iopt,istate,itask,itol,jac,mf,ir
