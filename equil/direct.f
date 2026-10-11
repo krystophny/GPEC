@@ -514,6 +514,7 @@ c-----------------------------------------------------------------------
          z=zo+rfac*SIN(eta)
          CALL direct_get_bfield(r,z,bf,2)
          y_out(istep,:)=(/eta,y/)
+         y_out(istep,2)=rfac
          err=(bf%psi-psi0)/bf%psi
 c-----------------------------------------------------------------------
 c     compute and print output for each step.
