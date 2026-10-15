@@ -450,3 +450,8 @@ check-pentrc-energy-istate: pentrc
 	$(BINDIR)/test_pentrc_energy_istate default
 	! $(BINDIR)/test_pentrc_energy_istate tight > $(BINDIR)/test_pentrc_energy_istate.log 2>&1
 	grep -q "ERROR: xintgrl_lsode - LSODE failed" $(BINDIR)/test_pentrc_energy_istate.log
+
+# Native PENTRC profile-reader/query regression; no equilibrium or solver job.
+.PHONY: check-pentrc-collisions
+check-pentrc-collisions:
+	python3 ../regression/test/pentrc_collision_profile.py -v
