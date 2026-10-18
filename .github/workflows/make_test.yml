@@ -221,6 +221,7 @@ jobs:
           ulimit -s unlimited
           ../../../bin/dcon && ../../../bin/gpec && ../../../bin/stride && ../../../bin/pentrc
           python3 ../../../regression/test/local_coupling_overlap.py --work-dir ../../../local_coupling_regression
+          python3 ../../../regression/test/control_surface_normal.py .
 
       - name: Run Soloviev kinetic example
         run: |
@@ -298,6 +299,7 @@ jobs:
           ulimit -s unlimited
           ../../../bin/dcon && ../../../bin/gpec && ../../../bin/stride && ../../../bin/pentrc
           python3 ../../../regression/test/local_coupling_overlap.py --work-dir ../../../local_coupling_regression
+          python3 ../../../regression/test/control_surface_normal.py .
 
       - name: Run Soloviev kinetic example
         run: |
