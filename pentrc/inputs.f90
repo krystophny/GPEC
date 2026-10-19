@@ -391,9 +391,9 @@ module inputs
                     +xj*reshape(table(:,10),(/npsi,nm/),order=(/1,2/))
         endif
 
-        ! For consistency with GPEC-0.3.0 and smaller values near rationals
-        if(verbose) print *,"  -> Using div(xi_perp) = -(dB/B+kappa.xi_perp)"
-        divxmni = -(lagbmni+kapxmni)
+        ! Use the perpendicular-displacement pair from the supplied columns.
+        ! lagb uses a different parallel gauge; see docs/pmodb_input_gauge.rst.
+        lagbmni = -(divxmni+kapxmni)
 
         ! convert to chebyshev coordinates
         if(jac_in=="" .or. jac_in=="default")then
