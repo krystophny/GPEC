@@ -3005,9 +3005,9 @@ c-----------------------------------------------------------------------
 
          CALL spline_eval(sq,psifac(istep),1)
 
-         singfac=mfac-nn*sq%f(4)
-         xsp1_mn=xsp1_mn*(singfac**2/(singfac**2+reg_spot**2))
-         CALL iscdftb(mfac,mpert,xsp1_fun,mthsurf,xsp1_mn)
+c        xmp1 is the radial derivative regularised only if reg_flag, as
+c        in xmt, xmz and the perturbed field (gpeq_sol, gpeq_contra).
+         CALL iscdftb(mfac,mpert,xsp1_fun,mthsurf,xmp1_mn)
 
          DO itheta=0,mthsurf
             CALL bicube_eval(eqfun,psifac(istep),theta(itheta),0)
