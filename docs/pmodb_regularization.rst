@@ -1,9 +1,9 @@
 pmodb radial-derivative selection
 =================================
 
-Verified at base 3622c25c: ``gpec/gpeq.f:114`` selects ``xmp1_mn`` as
+Verified at base 3622c25c: ``gpec/gpeq.f:131`` selects ``xmp1_mn`` as
 ``R*xsp1_mn`` only with ``reg_flag=t``, where
-``R=(m-nq)^2/[(m-nq)^2+reg_spot^2]``. ``gpec/gpout.f:3005`` previously
+``R=(m-nq)^2/[(m-nq)^2+reg_spot^2]``. ``gpec/gpout.f:3009`` previously
 applied R unconditionally when computing ``Bdivxprp``. Reuse ``xmp1_mn``
 so ``reg_flag=f`` uses the same derivative as the field and displacement.
 The regression runs the native Solovev example twice with reg_flag=f and
