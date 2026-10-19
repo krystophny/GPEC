@@ -221,6 +221,12 @@ jobs:
           ulimit -s unlimited
           ../../../bin/dcon && ../../../bin/gpec && ../../../bin/stride && ../../../bin/pentrc
 
+      - name: Check local Jacobian in pmodb diagnostics
+        run: |
+          export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
+          ulimit -s unlimited
+          python3 regression/test/pmodb_diagnostic.py
+
       - name: Run Soloviev kinetic example
         run: |
           export GPECHOME=$(pwd)
