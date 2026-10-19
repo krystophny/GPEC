@@ -1,7 +1,7 @@
 Local Jacobian in pmodb diagnostics
 ===================================
 
-Verified at base 3622c25c: ``gpec/gpdiag.f:1003`` forms
+Verified at base 3622c25c: ``gpec/gpdiag.f:1012`` forms
 ``J xi_perp^theta=xmt-(chi1/B)^2*(xvt+q*xvz)/J`` using a stale local J.
 The current theta's equilibrium values have just been evaluated, but J was
 not assigned until the following loop (``:1034``). Assign ``jac=rzphi%f(4)``
