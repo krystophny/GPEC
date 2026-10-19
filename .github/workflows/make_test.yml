@@ -221,6 +221,14 @@ jobs:
           ulimit -s unlimited
           ../../../bin/dcon && ../../../bin/gpec && ../../../bin/stride && ../../../bin/pentrc
 
+      - name: Check CGL against double-adiabatic pressure work
+        run: |
+          export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
+          export OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2
+          gfortran -O0 -fopenmp -Iequil -Ipentrc regression/test/pentrc_cgl_pressure.f90 -Ldeps/lib -L$PREFIX/lib -lpentrc -llsode -lequil -llapack -lblas -lnetcdff -lnetcdf -o /tmp/pentrc_cgl_pressure
+          cd docs/examples/regression_solovev_ideal_example
+          /tmp/pentrc_cgl_pressure
+
       - name: Run Soloviev kinetic example
         run: |
           export GPECHOME=$(pwd)
