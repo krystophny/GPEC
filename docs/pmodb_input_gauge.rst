@@ -1,10 +1,10 @@
 PENTRC ASCII pmodb gauge contract
 =================================
 
-Verified at base 3622c25c: ``pentrc/inputs.f90:469`` reads positive
-``Bdivxprp`` and ``Bkxprp`` from columns 7-10, then ``:487`` discards the
+Verified at base 3622c25c: ``pentrc/inputs.f90:376`` reads positive
+``Bdivxprp`` and ``Bkxprp`` from columns 7-10, then ``:396`` discards the
 former and combines ``lagb`` with curvature. The lagb column instead uses
-``xi_g^zeta=0`` in GPEC's working chart (``gpec/gpout.f:3035``).
+``xi_g^zeta=0`` in GPEC's working chart (``gpec/gpout.f:3041``).
 Its difference from the perpendicular value is
 ``lagb-b_perp=-(xi_perp^zeta/q) d_theta B``.
 
